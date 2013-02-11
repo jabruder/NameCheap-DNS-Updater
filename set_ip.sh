@@ -1,21 +1,26 @@
 #!/bin/bash
 
 
-host_name="www"; #Change to match your hostname. Use @ to for the "naked" domain
-domain="example.com"; #Change to match your domain name at NameCheap
-password="password"; #Change to the password generated in the NameCheap dynamic DNS settings → http://namecheap.simplekb.com/kb.show/c/dynamicdns
+host_name="subdomain"; #Change to match your hostname. Use @ to for the "naked" domain
+domain="domain.com"; #Change to match your domain name at NameCheap
+password="Password"; #Change to the password generated in the NameCheap dynamic DNS settings → http://namecheap.simplekb.com/kb.show/c/dynamicdns
 
 
 # Looks up the public IP of the computer running the script
-# Please follow the rules of whatismyip.com → http://www.whatismyip.com/faq/automation.asp
 
-# We ask that automated files hit our site no more then once every five minutes or once every 300 seconds.
-# We have a special automation page just for the purpose of helping programmers, you can find it here.
-# If you need to use the automation page more often than this, contact us and we can work something out.
-# You can reach us at automation at whatismyip dot com.
-
-public_ip=`curl http://automation.whatismyip.com/n09230945.asp`
+public_ip=`curl checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//'`
 
 
 # Updates the hostname.domain.com with the IP address lookedup in the previous command
-curl -s https://dynamicdns.park-your-domain.com/update?host="$host_name"\&domain="$domain"\&password="$password"\&ip="$public_ip";
+curlcmd=`curl -s https://dynamicdns.park-your-domain.com/update?host="$host_name"\&domain="$domain"\&password="$password"\&ip="$public_ip" | /usr/bin/grep "<ErrCount>0</ErrCount>"`
+# The previous is all one line... It will add the output of the curl command to the variable $curlcmd only if it contains a passing error count.
+
+if [ ! "$curlcmd" ] ; then
+  # If the variable $curlcmd is empty (failed) do stuff...
+  curl -s \
+  -F "token=App Token" \
+  -F "user=User ID" \
+  -F "message=DNS Updater Failure" \
+  https://api.pushover.net/1/messages.json
+  exit 1
+fi
