@@ -8,7 +8,7 @@ password="Password"; #Change to the password generated in the NameCheap dynamic 
 
 # Looks up the public IP of the computer running the script
 
-public_ip=`curl checkip.dyndns.org | sed -e 's/.*Current IP Address: //' -e 's/<.*$//'`
+public_ip=`curl -s checkip.dyndns.org 2>&1| sed -e 's/.*Current IP Address: //' -e 's/<.*$//'`
 
 
 # Updates the hostname.domain.com with the IP address lookedup in the previous command
